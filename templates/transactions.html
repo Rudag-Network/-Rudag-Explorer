@@ -50,8 +50,8 @@
                             {% endif %}
                         </td>
                         <td>
-                            <code class="text-success small" title="{{ tx.destino }}">
-                                {{ tx.destino[:12] }}...
+                            <code class="text-success small" title="{{ (tx.get('destino') or tx.get('recibe')) }}">
+                                {{ (tx.get('destino') or tx.get('recibe'))[:12] }}...
                             </code>
                         </td>
                         <td class="text-warning">
@@ -62,7 +62,7 @@
                             {% endif %}
                         </td>
                         <td class="text-muted">
-                            {{ "%.3f"|format(tx.fees) }} RGD
+                            {{ "%.3f"|format(tx.get('fee', 0)) }} RGD
                         </td>
                         <td class="text-muted small">
                             {{ format_timestamp(tx.timestamp) }}
