@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Rudag Explorer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Estadísticas principales -->
+    <div class="col-12 mb-4">
+        <div class="card bg-dark text-light">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <div class="stat-card">
+                            <i class="fas fa-cube fa-2x text-primary mb-2"></i>
+                            <h3 class="text-warning">{{ stats.total_blocks }}</h3>
+                            <p class="text-muted">Bloques</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stat-card">
+                            <i class="fas fa-exchange-alt fa-2x text-success mb-2"></i>
+                            <h3 class="text-warning">{{ stats.total_transactions }}</h3>
+                            <p class="text-muted">Transacciones Totales</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stat-card">
+                            <i class="fas fa-coins fa-2x text-warning mb-2"></i>
+                            <h3 class="text-warning">{{ "%.2f"|format(stats.total_supply) }} RGD</h3>
+                            <p class="text-muted">Suministro Total</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stat-card">
+                            <i class="fas fa-list fa-2x text-info mb-2"></i>
+                            <h3 class="text-warning" id="live-mempool-count">{{ mempool_count }}</h3>
+                            <p class="text-muted">Transacciones en Mempool</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8 mb-4">
+        <!-- Últimos bloques -->
+        <div class="card bg-dark text-light">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-cubes me-2"></i>Últimos Bloques
+                </h5>
+                <a href="{{ url_for('blocks') }}" class="btn btn-sm btn-outline-light">Ver todos</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Altura</th>
+                                <th>Hash Anterior</th>
+                                <th>Transacciones</th>
+                                <th>Tiempo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for block in recent_blocks %}
+                            <tr onclick="window.location='{{ url_for('block_detail', block_height=block.indice) }}'" style="cursor: pointer;">
+                                <td>
+                                    <strong class="text-warning">#{{ block.indice }}</strong>
+                                </td>
+                                <td>
+                                    <code class="text-info small">{{ block.hash_anterior[:16] }}...</code>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ block.transacciones|length }}</span>
+                                </td>
+                                <td class="text-muted small">
+                                    {{ format_timestamp(block.tiempo) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <!-- Estadísticas de red -->
+        <div class="card bg-dark text-light">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Estadísticas de Red
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">Recompensa Actual</small>
+                    <div class="text-warning">{{ "%.1f"|format(stats.current_reward) }} RGD</div>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Transacciones Coinbase</small>
+                    <div class="text-success">{{ stats.coinbase_transactions }}</div>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Transacciones Regulares</small>
+                    <div class="text-info">{{ stats.regular_transactions }}</div>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Total de Fees</small>
+                    <div class="text-warning">{{ "%.3f"|format(stats.total_fees) }} RGD</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de Mempool -->
+        <div class="card bg-dark text-light mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Mempool
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mempool-size">
+                    <i class="fas fa-inbox fa-3x text-info mb-3"></i>
+                    <h2 id="mempool-size" class="text-warning">{{ mempool_count }}</h2>
+                    <p class="text-muted">Transacciones pendientes</p>
+                </div>
+                <a href="{{ url_for('mempool') }}" class="btn btn-outline-light btn-sm">Ver Mempool</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    // Actualización en tiempo real
+    setInterval(updateLiveData, 10000);
+    
+    function updateLiveData() {
+        fetch('/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('live-mempool-count').textContent = data.mempool_count;
+                document.getElementById('mempool-size').textContent = data.mempool_count;
+                document.getElementById('mempool-badge').textContent = data.mempool_count;
+            })
+            .catch(error => console.error('Error updating live data:', error));
+    }
+</script>
+{% endblock %}

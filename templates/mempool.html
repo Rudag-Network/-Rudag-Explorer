@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Mempool - Rudag Explorer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-list me-2"></i>Mempool
+            </h1>
+            <div>
+                <span class="badge bg-warning fs-6" id="mempool-count">
+                    {{ mempool_data.count }} transacciones
+                </span>
+            </div>
+        </div>
+
+        <div class="card bg-dark text-light">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-inbox fa-4x text-info mb-3"></i>
+                <h3 class="text-warning" id="mempool-size-large">{{ mempool_data.count }}</h3>
+                <p class="text-muted mb-4">Transacciones en el mempool</p>
+                
+                {% if mempool_data.count == 0 %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No hay transacciones pendientes en el mempool en este momento.
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-clock me-2"></i>
+                    Las transacciones están esperando ser incluidas en el siguiente bloque.
+                </div>
+                {% endif %}
+
+                <!-- Aquí irían las transacciones del mempool cuando estén disponibles -->
+                <div id="mempool-transactions">
+                    <!-- Las transacciones del mempool se cargarán dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Actualizar mempool en tiempo real
+    setInterval(updateMempool, 5000);
+    
+    function updateMempool() {
+        fetch('/api/mempool')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('mempool-count').textContent = data.count + ' transacciones';
+                document.getElementById('mempool-size-large').textContent = data.count;
+                document.getElementById('mempool-badge').textContent = data.count;
+                
+                // Aquí podrías actualizar la lista de transacciones del mempool
+                updateMempoolTransactions(data.transactions);
+            })
+            .catch(error => console.error('Error updating mempool:', error));
+    }
+    
+    function updateMempoolTransactions(transactions) {
+        const container = document.getElementById('mempool-transactions');
+        
+        if (transactions && transactions.length > 0) {
+            // Generar tabla con transacciones del mempool
+            let html = `
+                <div class="table-responsive mt-4">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>Hash</th>
+                                <th>De</th>
+                                <th>Para</th>
+                                <th>Monto</th>
+                                <th>Fee</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            transactions.forEach(tx => {
+                html += `
+                    <tr>
+                        <td><code class="text-info small">${tx.hash ? tx.hash.substring(0, 16) + '...' : 'N/A'}</code></td>
+                        <td><code class="text-warning small">${tx.envia ? tx.envia.substring(0, 12) + '...' : 'N/A'}</code></td>
+                        <td><code class="text-success small">${tx.recibe ? tx.recibe.substring(0, 12) + '...' : 'N/A'}</code></td>
+                        <td class="text-light">${tx.monto ? tx.monto.toFixed(3) + ' RGD' : 'N/A'}</td>
+                        <td class="text-muted">${tx.fee ? tx.fee.toFixed(3) + ' RGD' : 'N/A'}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = '';
+        }
+    }
+</script>
+{% endblock %}

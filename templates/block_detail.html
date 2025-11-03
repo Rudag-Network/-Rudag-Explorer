@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Bloque #{{ block.indice }} - Rudag Explorer{% endblock %}
+
+{% block content %}
+{% if block %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('blocks') }}">Bloques</a></li>
+                <li class="breadcrumb-item active text-warning">Bloque #{{ block.indice }}</li>
+            </ol>
+        </nav>
+
+        <div class="card bg-dark text-light mb-4">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-cube me-2"></i>Detalles del Bloque #{{ block.indice }}
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <strong class="text-muted">Hash del Bloque Anterior:</strong>
+                            <div>
+                                <code class="text-info">{{ block.hash_anterior }}</code>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <strong class="text-muted">Nonce:</strong>
+                            <div class="text-warning">{{ block.nonce }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <strong class="text-muted">Timestamp:</strong>
+                            <div class="text-light">{{ format_timestamp(block.tiempo) }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <strong class="text-muted">Número de Transacciones:</strong>
+                            <div class="text-success">{{ block.transacciones|length }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transacciones del bloque -->
+        <div class="card bg-dark text-light">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-exchange-alt me-2"></i>
+                    Transacciones en este Bloque ({{ block.transacciones|length }})
+                </h4>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>De</th>
+                                <th>Para</th>
+                                <th>Monto</th>
+                                <th>Fee</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tx in block.transacciones %}
+                            <tr>
+                                <td>
+                                    {% if tx.tipo == 'coinbase' %}
+                                    <span class="badge bg-success">Coinbase</span>
+                                    {% else %}
+                                    <span class="badge bg-primary">Regular</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if tx.tipo == 'coinbase' %}
+                                    <em class="text-muted">Sistema</em>
+                                    {% else %}
+                                    <code class="text-info small">{{ tx.envia[:16] }}...</code>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <code class="text-success small">{{ tx.destino[:16] }}...</code>
+                                </td>
+                                <td class="text-warning">
+                                    {% if tx.tipo == 'coinbase' %}
+                                    {{ "%.1f"|format(tx.recompensa) }} RGD
+                                    {% else %}
+                                    {{ "%.3f"|format(tx.monto) }} RGD
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted">
+                                    {{ "%.3f"|format(tx.fees) }} RGD
+                                </td>
+                                <td class="text-muted small">
+                                    {{ format_timestamp(tx.timestamp) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning text-center">
+    <h4>Bloque no encontrado</h4>
+    <p>El bloque solicitado no existe en la cadena.</p>
+</div>
+{% endif %}
+{% endblock %}

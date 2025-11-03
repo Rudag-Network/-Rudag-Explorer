@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Bloques - Rudag Explorer{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-cubes me-2"></i>Bloques de la Cadena
+    </h1>
+    <span class="badge bg-primary fs-6">Total: {{ blocks|length }}</span>
+</div>
+
+<div class="card bg-dark text-light">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Altura</th>
+                        <th>Hash</th>
+                        <th>Transacciones</th>
+                        <th>Timestamp</th>
+                        <th>Nonce</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for block in blocks %}
+                    <tr onclick="window.location='{{ url_for('block_detail', block_height=block.indice) }}'" style="cursor: pointer;">
+                        <td>
+                            <strong class="text-warning">#{{ block.indice }}</strong>
+                        </td>
+                        <td>
+                            <code class="text-info small" title="{{ block.hash_anterior }}">
+                                {{ block.hash_anterior[:20] }}...
+                            </code>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{ block.transacciones|length }}</span>
+                            {% if block.transacciones|length > 1 %}
+                            <small class="text-muted">({{ block.transacciones|length - 1 }} regulares)</small>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">
+                            {{ format_timestamp(block.tiempo) }}
+                        </td>
+                        <td>
+                            <code class="text-muted">{{ block.nonce }}</code>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
